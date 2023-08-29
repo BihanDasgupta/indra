@@ -1,0 +1,55 @@
+In [9]: run JSON_schema.py --training_df  '/Users/bihan/Desktop/training_data_js
+   ...: on_friendly (1).tsv' --debug
+---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+File ~/Work/indra_gpt/indra_gpt/JSON_schema.py:777
+    773 args = parser.parse_args()
+    775 training_data_df = pd.read_csv(args.training_df, sep='\t')
+--> 777 reach_processor, statistics = main(training_data_df, args.n_statements,
+    778                                    debug=args.debug)
+    779 # save statements in reach_processor in json or pickle into a file
+    780 # save the statistics
+    781 # change the prompt so ChatGPT writes something like the statement we want
+   (...)
+    785 #with open('reach_processor.json', 'w') as f:
+    786    #json.dump(reach_processor, f)
+    788 stmts_to_json_file(stmts=reach_processor.statements,
+    789                    fname='JSON_schema_statements_.json')
+
+File ~/Work/indra_gpt/indra_gpt/JSON_schema.py:746, in main(training_df, n_statements, debug)
+    744 pa_hash, source_hash,text, english = item
+    745 examples = training_df[['english','text']].sample(2).values
+--> 746 gpt_english = run_chat_gpt_on_ev_text(text,examples,debug=debug)
+    747 gpt_english_statements.append(gpt_english)
+    748 statistics.append((
+    749     pa_hash, source_hash, text, english, gpt_english
+    750 ))
+
+File ~/Work/indra_gpt/indra_gpt/JSON_schema.py:717, in run_chat_gpt_on_ev_text(ev_text, examples, debug)
+    695 """ takes in ev_text and returns english statement
+    696 
+    697 Parameters
+   (...)
+    708     english statement from ChatGPT
+    709 """
+    711 prompt_templ = '1. Read the following data: \n' + JSON + '\n' + \
+    712                '2. Extract the relation from this sentence using the ' \
+    713                'data above:  \n"{' \
+    714                'prompt}"'
+    715 history = [
+    716     {"role": "user",
+--> 717      "content": prompt_templ.format(prompt=examples[0][1])},
+    718     {"role": "assistant",
+    719      "content": examples[0][0]},
+    720     {"role": "user",
+    721      "content": prompt_templ.format(prompt=examples[1][1])},
+    722     {"role": "assistant",
+    723      "content": examples[1][0]}
+    724 ]
+    726 prompt = prompt_templ.format(prompt=ev_text)
+    728 chat_gpt_english = run_openai_chat(prompt, chat_history=history,
+    729                                    max_tokens=25, strip=False, debug=debug)
+
+KeyError: "'$schema'"
+
+In [10]: 
